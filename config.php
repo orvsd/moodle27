@@ -33,12 +33,12 @@ $orvsdfqdn = $orvsdcwd[5];
 // Now you need to tell Moodle where it is located. Specify the full
 // web address to where moodle has been installed.
 $CFG->wwwroot   = 'http://' . str_replace('_','-',$orvsdfqdn);
-$CFG->dataroot  = '/data/moodledata/' . $orvsduser . '/moodle25/' . $orvsdfqdn;
+$CFG->dataroot  = '/data/moodledata/' . $orvsduser . '/moodle27/' . $orvsdfqdn;
 $CFG->directorypermissions = 02770;
 
 // Don't touch gluster for cache or temp
-$CFG->tempdir = '/var/tmp/orvsdplatform/'. $orvsduser . '/moodle25/' . $orvsdfqdn . '/temp';
-$CFG->cachedir = '/var/tmp/orvsdplatform/'. $orvsduser . '/moodle25/' . $orvsdfqdn . '/cache';
+$CFG->tempdir = '/var/tmp/orvsdplatform/'. $orvsduser . '/moodle27/' . $orvsdfqdn . '/temp';
+$CFG->cachedir = '/var/tmp/orvsdplatform/'. $orvsduser . '/moodle27/' . $orvsdfqdn . '/cache';
 
 // ORVSD ClamAV config
 $CFG->runclamonupload = true;
@@ -46,7 +46,7 @@ $CFG->pathtoclam = '/usr/bin/clamdscan';
 $CFG->quarantinedir = $CFG->tempdir;
 
 // Include relevant configuration from glusterfs mount.
-require_once('/data/moodledata/' . $orvsduser . '/moodle22/' . $orvsdfqdn . '/config.php');
+require_once('/data/moodledata/' . $orvsduser . '/moodle27/' . $orvsdfqdn . '/config.php');
 
 //=========================================================================
 // ALL DONE!  To continue installation, visit your main page with a browser
