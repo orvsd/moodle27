@@ -103,6 +103,12 @@ View the checklist here:';
 $string['emailoncompletebodyown'] = 'You have completed checklist \'{$a->checklist}\' in the course \'{$a->coursename}\' 
 View the checklist here:';
 
+$string['eventchecklistcomplete'] = 'Checklist complete';
+$string['eventeditpageviewed'] = 'Edit page viewed';
+$string['eventreportviewed'] = 'Report viewed';
+$string['eventstudentchecksupdated'] = 'Student checks updated';
+$string['eventteacherchecksupdated'] = 'Teacher checks updated';
+
 $string['export'] = 'Export items';
 
 $string['forceupdate'] = 'Update checks for all automatic items';
@@ -175,8 +181,9 @@ $string['teachernoteditcheck'] = 'Student only';
 $string['teacheroverwritecheck'] = 'Teacher only';
 $string['teacheralongsidecheck'] = 'Student and teacher';
 
+$string['togglecolumn'] = 'Toggle Column';
 $string['toggledates'] = 'Toggle names & dates';
-
+$string['togglerow'] = 'Toggle Row';
 $string['theme'] = 'Checklist display theme';
 
 $string['updatecompletescore'] = 'Save completion grades';

@@ -25,9 +25,26 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version  = 2013052200;  // The current module version (Date: YYYYMMDDXX)
-$module->cron     = 60;          // Period for cron to check this module (secs)
-$module->maturity = MATURITY_STABLE;
-$module->release  = '2.x (Build: 2013052200)';
-$module->requires = 2010112400;
-$module->component = 'mod_checklist';
+if (!isset($plugin)) {
+    // Avoid warning message in M2.5 and below.
+    $plugin = new stdClass();
+}
+// Used by M2.6 and above.
+$plugin->version  = 2014080601;  // The current module version (Date: YYYYMMDDXX)
+$plugin->cron     = 60;          // Period for cron to check this module (secs)
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release  = '2.x (Build: 2014080601)';
+$plugin->requires = 2010112400;
+$plugin->component = 'mod_checklist';
+
+if (!isset($module)) {
+    // Avoid warning message when $module support is dropped.
+    $module = new stdClass();
+}
+// Used by M2.5 and below.
+$module->version = $plugin->version;
+$module->cron = $plugin->cron;
+$module->maturity = $plugin->maturity;
+$module->release = $plugin->release;
+$module->requires = $plugin->requires;
+$module->component = $plugin->component;
