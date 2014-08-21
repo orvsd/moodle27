@@ -207,6 +207,11 @@ function checklist_update_grades($checklist, $userid=0) {
     if (!$cm = get_coursemodule_from_instance('checklist', $checklist->id, $course->id)) {
         return;
     }
+    if ($CFG->version < 2011120100) {
+        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    } else {
+        $context = context_module::instance($cm->id);
+    }
 
     $checkgroupings = false; // Don't check items against groupings unless we really have to
     if (isset($CFG->enablegroupmembersonly) && $CFG->enablegroupmembersonly && $checklist->autopopulate) {
@@ -230,11 +235,6 @@ function checklist_update_grades($checklist, $userid=0) {
         if ($userid) {
             $users = $DB->get_records('user', array('id'=>$userid), null, 'id, firstname, lastname');
         } else {
-            if ($CFG->version < 2011120100) {
-                $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-            } else {
-                $context = context_module::instance($cm->id);
-            }
             if (!$users = get_users_by_capability($context, 'mod/checklist:updateown', 'u.id, u.firstname, u.lastname', '', '', '', '', '', false)) {
                 return;
             }
@@ -267,18 +267,18 @@ function checklist_update_grades($checklist, $userid=0) {
             } else {
                 $itemlist = substr($itemlist, 0, -1); // Remove trailing ','
 
-                $sql = 'SELECT ? AS userid, (SUM(CASE WHEN '.$where.' THEN 1 ELSE 0 END) * ? / ? ) AS rawgrade'.$date;
+                $sql = 'SELECT (SUM(CASE WHEN '.$where.' THEN 1 ELSE 0 END) * ? / ? ) AS rawgrade'.$date;
                 $sql .= " FROM {checklist_check} c ";
                 $sql .= " WHERE c.item IN ($itemlist)";
                 $sql .= ' AND c.userid = ? ';
 
-                $ugrade = $DB->get_record_sql($sql, array($userid, $checklist->maxgrade, $total, $userid));
+                $ugrade = $DB->get_record_sql($sql, array($checklist->maxgrade, $total, $userid));
                 if (!$ugrade) {
                     $ugrade = new stdClass;
-                    $ugrade->userid = $userid;
                     $ugrade->rawgrade = 0;
                     $ugrade->date = time();
                 }
+                $ugrade->userid = $userid;
             }
 
             $ugrade->firstname = $user->firstname;
@@ -293,11 +293,6 @@ function checklist_update_grades($checklist, $userid=0) {
         if ($userid) {
             $users = $userid;
         } else {
-            if ($CFG->version < 2011120100) {
-                $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-            } else {
-                $context = context_module::instance($cm->id);
-            }
             if (!$users = get_users_by_capability($context, 'mod/checklist:updateown', 'u.id', '', '', '', '', '', false)) {
                 return;
             }
@@ -309,12 +304,18 @@ function checklist_update_grades($checklist, $userid=0) {
         list($usql, $uparams) = $DB->get_in_or_equal($users);
         list($isql, $iparams) = $DB->get_in_or_equal(array_keys($items));
 
+        if ($CFG->version < 2013111800) {
+            $namefields = 'u.firstname, u.lastname ';
+        } else {
+            $namefields = get_all_user_name_fields(true, 'u');
+        }
+
         $sql = 'SELECT u.id AS userid, (SUM(CASE WHEN '.$where.' THEN 1 ELSE 0 END) * ? / ? ) AS rawgrade'.$date;
-        $sql .= ' , u.firstname, u.lastname ';
+        $sql .= ' , '.$namefields;
         $sql .= ' FROM {user} u LEFT JOIN {checklist_check} c ON u.id = c.userid';
         $sql .= " WHERE u.id $usql";
         $sql .= " AND c.item $isql";
-        $sql .= ' GROUP BY u.id, u.firstname, u.lastname';
+        $sql .= ' GROUP BY u.id, '.$namefields;
 
         $params = array_merge($uparams, $iparams);
         $params = array_merge(array($checklist->maxgrade, $total), $params);
@@ -348,7 +349,7 @@ function checklist_update_grades($checklist, $userid=0) {
                         //email will be sended to the all teachers who have capability
                         $subj = get_string('emailoncompletesubject', 'checklist', $details);
                         $content = get_string('emailoncompletebody', 'checklist', $details);
-                        $content .= new moodle_url('/mod/checklst/view.php', array('id' => $cm->id));
+                        $content .= new moodle_url('/mod/checklist/view.php', array('id' => $cm->id));
 
                         if ($recipients = get_users_by_capability($context, 'mod/checklist:emailoncomplete', 'u.*', '', '', '', '', '', false)) {
                             foreach ($recipients as $recipient) {                                
@@ -360,14 +361,24 @@ function checklist_update_grades($checklist, $userid=0) {
                         //email will be sended to the student who complete this checklist
                         $subj = get_string('emailoncompletesubjectown', 'checklist', $details);
                         $content = get_string('emailoncompletebodyown', 'checklist', $details);
-                        $content .= new moodle_url('/mod/checklst/view.php', array('id' => $cm->id));
+                        $content .= new moodle_url('/mod/checklist/view.php', array('id' => $cm->id));
 
                         $recipient_stud = $DB->get_record('user', array('id' => $grade->userid) );
                         email_to_user($recipient_stud, $grade, $subj, $content, '', '', '', false);                        
                     }
                 }
             }
-            add_to_log($checklist->course, 'checklist', 'complete', "view.php?id={$cm->id}", $checklist->name, $cm->id, $grade->userid);
+            if ($CFG->version > 2014051200) { // Moodle 2.7+
+                $params = array(
+                    'contextid' => $context->id,
+                    'objectid' => $checklist->id,
+                    'userid' => $grade->userid,
+                );
+                $event = \mod_checklist\event\checklist_completed::create($params);
+                $event->trigger();
+            } else { // Before Moodle 2.7
+                add_to_log($checklist->course, 'checklist', 'complete', "view.php?id={$cm->id}", $checklist->id, $cm->id, $grade->userid);
+            }
         }
         $ci = new completion_info($course);
         if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
@@ -698,11 +709,21 @@ function checklist_cron () {
 function checklist_get_participants($checklistid) {
     global $DB;
 
-    $sql = 'SELECT DISTINCT u.id, u.id FROM {user} u, {checklist_item} i, {checklist_check} c ';
-    $sql .= 'WHERE i.checklist = ? AND ((c.item = i.id AND c.userid = u.id) OR (i.userid = u.id))';
-    $return = $DB->get_records_sql($sql, array($checklistid));
+    $params = array($checklistid);
+    $sql = 'SELECT DISTINCT u.id
+              FROM {user} u
+              JOIN {checklist_item} i ON i.userid = u.id
+             WHERE i.checklist = ?';
+    $userids1 = $DB->get_records_sql($sql, $params);
 
-    return $return;
+    $sql = 'SELECT DISTINCT u.id
+              FROM {user} u
+              JOIN {checklist_check} c ON c.userid = u.id
+              JOIN {checklist_item} i ON i.id = c.item
+             WHERE i.checklist = ?';
+    $userids2 = $DB->get_records_sql($sql, $params);
+
+    return $userids1 + $userids2;
 }
 
 /**

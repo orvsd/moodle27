@@ -11,6 +11,13 @@ Students are presented with a simple chart showing how far they have progressed 
 
 ==Changes==
 
+* 2014-07-06 - Fix toggle row/column buttons. Update version.php.
+* 2014-05-31 - Add toggle row / toggle column buttons to report view - developed by Simon Bertoli
+* 2014-05-31 - Add Moodle 2.7 event logging; fix Postgres compatibility (Tony Butler); prevent teachers seeing student reports when they cannot access any groups; fix centering of report headings (Syxton).
+* 2014-01-15 - Fix compatibility of MS SQL with 2.6 version of plugin.
+* 2013-19-11 - Moodle 2.6 compatibility fixes (+ correction to this fix)
+* 2013-11-11 - Cope with empty section names
+* 2013-07-30 - Fix editing of item indents
 * 2013-05-22 - 'Display description on course page' + (old)IE compatibility fix
 * 2013-05-06 - Fix Moodle 2.4 compatibility regression
 * 2013-04-24 - Minor fixes for Moodle 2.5 compatibility
