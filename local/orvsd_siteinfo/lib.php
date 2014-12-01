@@ -25,6 +25,31 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+
+/**
+ * Get the comma-delimited array of users on the admin list.
+ * The list includes first name, last name, and email-address.
+ *
+ * Returns: json encoded string for the array of objects with the fields:
+ *     string firstname
+ *     string lastname
+ *     string email
+ *
+ * You can find and modify the actual list through the moodle website
+ * by going to site administration -> users -> permissions -> site administrators
+ */
+
+function orvsd_siteinfo_get_admin_list() {
+    global $DB;
+    $sql = "SELECT firstname, lastname, email
+            FROM mdl_user, mdl_config
+            WHERE mdl_config.name = ?
+            AND FIND_IN_SET(mdl_user.id, mdl_config.value) > ?";
+    $result = $DB->get_records_sql($sql, array('siteadmins', 0));
+
+    return json_encode($result);
+}
+
 /**
  * Initialise the siteinfo table with this site's info
  * @return bool
