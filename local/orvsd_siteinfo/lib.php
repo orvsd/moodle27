@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * siteinfo plugin function library 
+ * siteinfo plugin function library
  *
  * @package    local
  * @subpackage orvsd_siteinfo
@@ -25,6 +25,69 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ *
+ * Look for a siteadmin token, if it doesn't exist, generate one
+ *
+ * Returns nothing
+ */
+function orvsd_siteinfo_generate_token() {
+    global $CFG, $DB;
+
+    // Look up the service, if it doesn't exist, create it
+    $service = $DB->get_record(
+        'external_services',
+        array('component'=>'local_orvsd_siteinfo')
+    );
+
+    if (!$service) {
+        $tmp = $DB->get_records_sql(
+            'SHOW TABLE STATUS WHERE name = "mdl_external_services"'
+        );
+        $service_id = $tmp['mdl_external_services']->auto_increment;
+
+        $service = new stdClass();
+        $service->id = $service_id;
+    }
+
+    // Check for a token associated to the siteadmin, if none exists, generate
+    $admin = $DB->get_record_sql(
+        "SELECT value FROM `mdl_config` WHERE `name` LIKE 'siteadmins'",
+        null,
+        IGNORE_MISSING
+    );
+
+    $admin_user = $DB->get_record('user', array('id' => "$admin->value"));
+    $existing_tokens = $DB->get_record(
+        'external_tokens',
+        array(
+            'userid' => $admin_user->id,
+            'externalserviceid' => $service->id
+        )
+    );
+
+    if (!$existing_tokens) {
+        require('config.php');
+        require_once("$CFG->libdir/externallib.php");
+
+        // Generate a new token for the Admin User
+        $token = external_generate_token(
+            EXTERNAL_TOKEN_PERMANENT,
+            $service,
+            $admin_user->id,
+            context_system::instance(),
+            $validuntil=0,
+            $IP_RESTRICTION
+        );
+
+        $DB->set_field(
+            'external_tokens',
+            'creatorid',
+            "$admin_user->id",
+            array("token"=>"$token")
+        );
+    }
+}
 
 /**
  * Get the comma-delimited array of users on the admin list.
@@ -47,94 +110,13 @@ function orvsd_siteinfo_get_admin_list() {
             AND FIND_IN_SET(mdl_user.id, mdl_config.value) > ?";
     $result = $DB->get_records_sql($sql, array('siteadmins', 0));
 
-    return json_encode($result);
-}
-
-/**
- * Initialise the siteinfo table with this site's info
- * @return bool
- */
-
-function orvsd_siteinfo_init_db() {
-    global $CFG, $DB, $SITE;
-
-    // timeframe - default is within the last month, 
-    // i.e time() - 2592000 seconds (30 days)
-    // other options:
-    // in the last week = time() - 604800
-    $timeframe = time() - 2592000;
-    
-    // teachers = regular and non-editing teachers
-    $teachers = orvsd_siteinfo_usercount("teacher",null);
-    
-    $courselist_string = orvsd_siteinfo_courselist();
-
-    $siteinfo = new stdClass();
-    $siteinfo->baseurl      = $CFG->wwwroot;
-    $siteinfo->basepath     = $CFG->dirroot;
-    $siteinfo->sitename     = $SITE->fullname;
-    $siteinfo->sitetype     = "moodle";
-    $siteinfo->siteversion  = $CFG->version;
-    $siteinfo->siterelease  = $CFG->release;
-    $siteinfo->location     = php_uname('n'); 
-    $siteinfo->adminemail   = $CFG->supportemail;
-    $siteinfo->totalusers   = orvsd_siteinfo_usercount(null, null);
-    $siteinfo->adminusers   = intval($CFG->siteadmins);
-    $siteinfo->teachers     = $teachers;
-    $siteinfo->activeusers  = orvsd_siteinfo_usercount(null, $timeframe);
-    $siteinfo->totalcourses = count($courselist);
-    $siteinfo->courses      = $courselist_string;
-    $siteinfo->timemodified = time();
-    
-    $DB->insert_record('siteinfo', $siteinfo);
-
-    return true;
-}
-
-/**
- * Update the siteinfo table with this site's info
- * this will get called on certain events, see events.php
- * @return bool
- */
-function orvsd_siteinfo_update_db() {
-    global $CFG, $DB, $SITE;
-    // timeframe - default is within the last month, 
-    // i.e time() - 2592000 seconds (30 days)
-    // other options:
-    // in the last week = time() - 604800
-    $timeframe = time() - 2592000;
-    
-    // teachers = regular and non-editing teachers
-    $teachers = orvsd_siteinfo_usercount("teacher",null);
-    
-    $courselist_string = orvsd_siteinfo_courselist();
-
-    $siteinfo = new stdClass();
-    $siteinfo->id           = 1;
-    $siteinfo->baseurl      = $CFG->wwwroot;
-    $siteinfo->basepath     = $CFG->dirroot;
-    $siteinfo->sitename     = $SITE->fullname;
-    $siteinfo->sitetype     = "moodle";
-    $siteinfo->siteversion  = $CFG->version;
-    $siteinfo->siterelease  = $CFG->release;
-    $siteinfo->location     = php_uname('n');
-    $siteinfo->adminemail   = $CFG->supportemail;
-    $siteinfo->totalusers   = orvsd_siteinfo_usercount(null, null);
-    $siteinfo->adminusers   = intval($CFG->siteadmins);
-    $siteinfo->teachers     = $teachers;
-    $siteinfo->activeusers  = orvsd_siteinfo_usercount(null, $timeframe);
-    $siteinfo->totalcourses = count($courselist);
-    $siteinfo->courses      = $courselist_string;
-    $siteinfo->timemodified = time();
-
-    try {
-        $DB->update_record('siteinfo', $siteinfo);
-    } catch (Exception $e) {
-        //echo 'Caught exception: ',  $e->getMessage(), "\n";
-        return false;
+    if (gettype($result) != "array") {
+        $result = [$result];
     }
-    return true;  
+
+    return $result;
 }
+
 
 /**
  * Count users
@@ -185,7 +167,7 @@ function orvsd_siteinfo_usercount($role="none", $timeframe=null) {
               $where";
 
     } else {
-      $sql = "SELECT COUNT(*) 
+      $sql = "SELECT COUNT(*)
                 FROM mdl_user
                WHERE mdl_user.deleted = 0
                AND mdl_user.confirmed = 1
@@ -196,6 +178,7 @@ function orvsd_siteinfo_usercount($role="none", $timeframe=null) {
 
     return intval($count);
 }
+
 
 /**
  * generate list of courses installed here
@@ -210,14 +193,14 @@ function orvsd_siteinfo_courselist() {
   $sort = 'courseid';
   $fields = 'courseid,shortname,serial';
   $courses = $DB->get_records($table,$conditions,$sort,$fields);
-//  print_r($courses);
+
   $course_list = array();
   foreach($courses as $course) {
       $shortname = preg_replace('/"/', '', $course->shortname);
       $shortname = preg_replace("/'/", " ", $shortname);
       $enrolled = orvsd_siteinfo_get_enrolments($course->courseid);
-      $course_list[] = '{"serial":"' . $course->serial . 
-                        '","shortname":"' . htmlentities($shortname) . 
+      $course_list[] = '{"serial":"' . $course->serial .
+                        '","shortname":"' . htmlentities($shortname) .
                         '","enrolled":' . $enrolled . '}';
   }
 
@@ -230,20 +213,21 @@ function orvsd_siteinfo_courselist() {
     return $courselist_string;
 }
 
+
 /**
- * Get student enrollments for this course 
+ * Get student enrollments for this course
  * @return array
  */
 function orvsd_siteinfo_get_enrolments($courseid) {
   global $CFG, $DB;
 
-  $sql = "select count(userid) 
+  $sql = "select count(userid)
           from mdl_enrol
           left join mdl_user_enrolments
             on mdl_user_enrolments.enrolid=mdl_enrol.id
           where mdl_enrol.roleid=5
           and mdl_enrol.courseid=$courseid";
-  
+
   $params = null;
   return $DB->get_field_sql($sql,$params, IGNORE_MISSING);
 }

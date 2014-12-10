@@ -31,8 +31,6 @@ class local_orvsd_siteinfo_external extends external_api {
     global $CFG, $USER, $DB;
     $datetime *= 86400; // 86400 seconds per day
 
-    // Include the coursecat methods for creating the category
-    require_once($CFG->libdir.'/coursecatlib.php');
     $sinfo = null;
 
     $param_array = array(
@@ -44,7 +42,7 @@ class local_orvsd_siteinfo_external extends external_api {
     $context = get_context_instance(CONTEXT_USER, $USER->id);
     self::validate_context($context);
 
-    // timeframe - default is within the last month, 
+    // timeframe - default is within the last month,
     // i.e time() - 2592000 seconds (within the last 30 days)
     // other options:
     // in the last week = time() - 604800
@@ -54,7 +52,33 @@ class local_orvsd_siteinfo_external extends external_api {
   }
 
   public static function siteinfo_returns() {
-    return new external_value(PARAM_TEXT, 'Site info.');
+    return new external_single_structure (
+       array (
+        'baseurl' => new external_value(PARAM_RAW, "baseurl"),
+        'basepath' => new external_value(PARAM_RAW, "baseurl"),
+        'sitename' => new external_value(PARAM_RAW, "sitename"),
+        'sitetype' => new external_value(PARAM_RAW, "sitetype", VALUE_DEFAULT, "moodle"),
+        'siteversion' => new external_value(PARAM_RAW, "siteversion"),
+        'location' => new external_value(PARAM_RAW, "location"),
+        'adminemail' => new external_value(PARAM_RAW, "adminemail"),
+        'totalusers' => new external_value(PARAM_INT, "totalusers"),
+        'adminusers' => new external_value(PARAM_INT, "adminusers"),
+        'adminlist' => new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    "firstname" => new external_value(PARAM_RAW, "firstname"),
+                    "lastname" => new external_value(PARAM_RAW, "lastname"),
+                    "email" => new external_value(PARAM_RAW, "email")
+                )
+            )
+        ),
+        'teachers' => new external_value(PARAM_RAW, "teachers"),
+        'activeusers' => new external_value(PARAM_INT, "activeusers"),
+        'totalcourses' => new external_value(PARAM_INT, "totalcourses"),
+        'courses' => new external_value(PARAM_RAW, "courses"),
+        'timemodified' => new external_value(PARAM_RAW, "timemodified")
+      )
+    );
   }
 
   /**
@@ -67,28 +91,28 @@ class local_orvsd_siteinfo_external extends external_api {
 
       // teachers = regular and non-editing teachers
       $teachers = local_orvsd_siteinfo_external::user_count("teacher",null);
-      
+
       $courselist_string = orvsd_siteinfo_courselist();
 
-      $sinfo = new stdClass();
-      $sinfo->baseurl      = $CFG->wwwroot;
-      $sinfo->basepath     = $CFG->dirroot;
-      $sinfo->sitename     = $SITE->fullname;
-      $sinfo->sitetype     = "moodle";
-      $sinfo->siteversion  = $CFG->version;
-      $sinfo->siterelease  = $CFG->release;
-      $sinfo->location     = php_uname('n'); 
-      $sinfo->adminemail   = $CFG->supportemail;
-      $sinfo->totalusers   = local_orvsd_siteinfo_external::user_count(null, null);
-      $sinfo->adminusers   = intval($CFG->siteadmins);
-      $sinfo->adminlist    = orvsd_siteinfo_get_admin_list();
-      $sinfo->teachers     = $teachers;
-      $sinfo->activeusers  = local_orvsd_siteinfo_external::user_count(null, $timeframe);
-      $sinfo->totalcourses = count($courselist);
-      $sinfo->courses      = $courselist_string;
-      $sinfo->timemodified = time();
+      $sinfo = array();
+      $sinfo['baseurl']      = $CFG->wwwroot;
+      $sinfo['basepath']     = $CFG->dirroot;
+      $sinfo['sitename']     = $SITE->fullname;
+      $sinfo['sitetype']     = "moodle";
+      $sinfo['siteversion']  = $CFG->version;
+      $sinfo['siterelease']  = $CFG->release;
+      $sinfo['location']     = php_uname('n');
+      $sinfo['adminemail']   = $CFG->supportemail;
+      $sinfo['totalusers']   = local_orvsd_siteinfo_external::user_count(null, null);
+      $sinfo['adminusers']   = intval($CFG->siteadmins);
+      $sinfo['adminlist']    = orvsd_siteinfo_get_admin_list();
+      $sinfo['teachers']     = $teachers;
+      $sinfo['activeusers']  = local_orvsd_siteinfo_external::user_count(null, $timeframe);
+      $sinfo['totalcourses'] = count($courselist_string);
+      $sinfo['courses']      = $courselist_string;
+      $sinfo['timemodified'] = time();
 
-      return json_encode($sinfo);
+      return $sinfo;
     }
 
     /**
@@ -140,7 +164,7 @@ class local_orvsd_siteinfo_external extends external_api {
                 $where";
 
       } else {
-        $sql = "SELECT COUNT(*) 
+        $sql = "SELECT COUNT(*)
                   FROM mdl_user
                  WHERE mdl_user.deleted = 0
                  AND mdl_user.confirmed = 1

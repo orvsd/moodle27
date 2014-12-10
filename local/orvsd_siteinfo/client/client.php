@@ -25,8 +25,14 @@ function spaces($num) {
 
 /** For viewing or debugging the json_encoded output
  ** in a human-readable format.
+ ** This function has bugs, it is hacked to make the
+ ** output from the response semi-readable.
  */
 function formatted_output($input) {
+    if ( empty ($input ) ) {
+        return $input;
+    }
+
     $prevchar = $input[0];
     $char = $prevchar;
     $input = substr($input, 1); // remove first character
