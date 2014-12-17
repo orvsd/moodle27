@@ -36,6 +36,7 @@ $functions = array(
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
 	'Site Info' => array(
+		'shortname' => 'orvsd_siteinfo',
 		'functions' => array ('local_orvsd_siteinfo_siteinfo'),
 		'restrictedusers' => 0,
 		'enabled'=>1,
