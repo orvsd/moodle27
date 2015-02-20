@@ -23,10 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Module names
+// Module names.
 $string['assign'] = 'Assignment';
 $string['assignment'] = 'Assignment';
 $string['book'] = 'Book';
+$string['bigbluebuttonbn'] = 'Big Blue Button';
 $string['certificate'] = 'Certificate';
 $string['chat'] = 'Chat';
 $string['choice'] = 'Choice';
@@ -37,18 +38,22 @@ $string['folder'] = 'Folder';
 $string['forum'] = 'Forum';
 $string['glossary'] = 'Glossary';
 $string['hotpot'] = 'Hot Potatoes';
+$string['hsuforum'] = 'Advanced Forum';
 $string['imscp'] = 'IMS Content Package';
 $string['journal'] = 'Journal';
 $string['lesson'] = 'Lesson';
 $string['page'] = 'Page';
+$string['questionnaire'] = 'Questionnaire';
 $string['quiz'] = 'Quiz';
 $string['resource'] = 'File';
+$string['recordingsbn'] = 'BBB Recordings';
 $string['scorm'] = 'SCORM';
+$string['turnitintool'] = 'Turnitin Tool';
 $string['url'] = 'URL';
 $string['wiki'] = 'Wiki';
 $string['workshop'] = 'Workshop';
 
-// Actions
+// Actions.
 $string['activity_completion'] = 'activity completion';
 $string['answered'] = 'answered';
 $string['assessed'] = 'assessed';
@@ -59,12 +64,13 @@ $string['finished'] = 'finished';
 $string['graded'] = 'graded';
 $string['marked'] = 'marked';
 $string['passed'] = 'passed';
+$string['passedscorm'] = 'passed';
 $string['posted_to'] = 'posted to';
 $string['responded_to'] = 'responded to';
 $string['submitted'] = 'submitted';
 $string['viewed'] = 'viewed';
 
-// Stings for the Config page
+// Stings for the Config page.
 $string['config_default_title'] = 'Progress Bar';
 $string['config_header_action'] = 'Action';
 $string['config_header_expected'] = 'Expected by';
@@ -72,7 +78,6 @@ $string['config_header_icon'] = 'Icon';
 $string['config_header_locked'] = 'Locked to deadline';
 $string['config_header_monitored'] = 'Monitored';
 $string['config_icons'] = 'Use icons in bar';
-$string['config_monitored'] = 'Monitored activities/resources';
 $string['config_now'] = 'Use';
 $string['config_percentage'] = 'Show percentage to students';
 $string['config_title'] = 'Alternate title';
@@ -80,7 +85,7 @@ $string['config_orderby'] = 'Order bar items by';
 $string['config_orderby_due_time'] = '"Expected by" date-time';
 $string['config_orderby_course_order'] = 'Ordering in course';
 
-// Help strings
+// Help strings.
 $string['why_set_the_title'] = 'Why you might want to set the block instance title?';
 $string['why_set_the_title_help'] = '
 <p>There can be multiple instances of the Progress Bar block. You may use different Progress Bar blocks to monitor different sets of activities or resources. For instance you could track progress in assignments in one block and quizzes in another. For this reason you can override the default title and set a more appropriate block title for each instance.</p>
@@ -144,9 +149,8 @@ $string['how_ordering_works_help'] = '
 </ul>
 ';
 
-// Other terms
+// Other terms.
 $string['addallcurrentitems'] = 'Add all activities/resources';
-$string['date_format'] = '%a %d %b, %I:%M %p';
 $string['mouse_over_prompt'] = 'Mouse over block for info.';
 $string['no_events_config_message'] = 'There are no activities or resources to monitor the progress of. Create some activities and/or resources then configure this block.';
 $string['no_events_message'] = 'No activities or resources are being monitored. Use config to set up monitoring.';
@@ -156,17 +160,31 @@ $string['pluginname'] = 'Progress Bar';
 $string['selectitemstobeadded'] = 'Select activities/resources';
 $string['time_expected'] = 'Expected';
 
-// Default colours that may have different cultural meanings
-$string['attempted_colour'] = '#33CC00';
-$string['notAttempted_colour'] = '#FF3300';
-$string['futureNotAttempted_colour'] = '#3366FF';
+// Default colours that may have different cultural meanings.
+$string['attempted_colour'] = '#5CD85C';
+$string['notAttempted_colour'] = '#FF5C5C';
+$string['futureNotAttempted_colour'] = '#5C5CFF';
 
-// Overview page strings
-$string['lastonline'] = 'Last online';
+$string['attempted_colour_title'] = 'Attempted Colour';
+$string['attempted_colour_descr'] = 'HTML Colour code for elements that have been attempted';
+$string['notattempted_colour_title'] = 'Not-attempted Colour';
+$string['notattempted_colour_descr'] = 'HTML Colour code for current elements that have not yet been attempted';
+$string['futurenotattempted_colour_title'] = 'Future Not-attempted Colour';
+$string['futurenotattempted_colour_descr'] = 'HTML Colour code for future elements that have not yet been attemted';
+
+// Overview page strings.
+$string['lastonline'] = 'Last in course';
 $string['overview'] = 'Overview of students';
 $string['progress'] = 'Progress';
 $string['progressbar'] = 'Progress Bar';
 
-// For cabailities
+// For cabailities.
 $string['progress:overview'] = 'View course overview of Progress bars for all students';
 $string['progress:addinstance'] = 'Add a new Progress Bar block';
+$string['progress:myaddinstance'] = 'Add a Progress Bar block to My home page';
+
+// For Cache.
+$string['cachedef_cachedlogs'] = 'Progress Bar log query caching';
+
+// For My home page.
+$string['no_blocks'] = "No Progress Bar blocks are set up for your courses.";
