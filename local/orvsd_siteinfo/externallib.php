@@ -61,7 +61,6 @@ class local_orvsd_siteinfo_external extends external_api {
         'siteversion' => new external_value(PARAM_RAW, "siteversion"),
         'siterelease' => new external_value(PARAM_RAW, "siterelease"),
         'location' => new external_value(PARAM_RAW, "location"),
-        'adminemail' => new external_value(PARAM_RAW, "adminemail"),
         'totalusers' => new external_value(PARAM_INT, "totalusers"),
         'adminusers' => new external_value(PARAM_INT, "adminusers"),
         'adminlist' => new external_multiple_structure(
@@ -103,7 +102,6 @@ class local_orvsd_siteinfo_external extends external_api {
       $sinfo['siteversion']  = $CFG->version;
       $sinfo['siterelease']  = $CFG->release;
       $sinfo['location']     = php_uname('n');
-      $sinfo['adminemail']   = $CFG->supportemail;
       $sinfo['totalusers']   = local_orvsd_siteinfo_external::user_count(null, null);
       $sinfo['adminusers']   = intval($CFG->siteadmins);
       $sinfo['adminlist']    = orvsd_siteinfo_get_admin_list();
