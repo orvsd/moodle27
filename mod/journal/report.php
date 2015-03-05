@@ -16,7 +16,7 @@ if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
 
 require_login($course->id, false, $cm);
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 
 require_capability('mod/journal:manageentries', $context);
 
@@ -57,6 +57,8 @@ $currentgroup = groups_get_activity_group($cm, true);
 /// Process incoming data if there is any
 if ($data = data_submitted()) {
 
+    confirm_sesskey();
+
     $feedback = array();
     $data = (array)$data;
 
@@ -74,7 +76,11 @@ if ($data = data_submitted()) {
     foreach ($feedback as $num => $vals) {
         $entry = $entrybyentry[$num];
         // Only update entries where feedback has actually changed.
-        if (($vals['r'] <> $entry->rating) || ($vals['c'] <> addslashes($entry->entrycomment))) {
+        $rating_changed = false;
+        if (($vals['r'] <> $entry->rating) && !($vals['r'] == '' && $entry->rating == "0")) {
+          $rating_changed = true;
+        }
+        if (($rating_changed) || (addslashes($vals['c']) <> addslashes($entry->entrycomment))) {
             $newentry = new StdClass();
             $newentry->rating     = $vals['r'];
             $newentry->entrycomment    = $vals['c'];
@@ -98,11 +104,30 @@ if ($data = data_submitted()) {
             journal_update_grades($journal, $entry->userid);
         }
     }
-    add_to_log($course->id, "journal", "update feedback", "report.php?id=$cm->id", "$count users", $cm->id);
+
+    // Trigger module feedback updated event.
+    $event = \mod_journal\event\feedback_updated::create(array(
+        'objectid' => $journal->id,
+        'context' => $context
+    ));
+    $event->add_record_snapshot('course_modules', $cm);
+    $event->add_record_snapshot('course', $course);
+    $event->add_record_snapshot('journal', $journal);
+    $event->trigger();
+
     notify(get_string("feedbackupdated", "journal", "$count"), "notifysuccess");
 
 } else {
-    add_to_log($course->id, "journal", "view responses", "report.php?id=$cm->id", "$journal->id", $cm->id);
+
+    // Trigger module viewed event.
+    $event = \mod_journal\event\entries_viewed::create(array(
+        'objectid' => $journal->id,
+        'context' => $context
+    ));
+    $event->add_record_snapshot('course_modules', $cm);
+    $event->add_record_snapshot('course', $course);
+    $event->add_record_snapshot('journal', $journal);
+    $event->trigger();
 }
 
 /// Print out the journal entries
@@ -115,7 +140,7 @@ if ($currentgroup) {
 $users = get_users_by_capability($context, 'mod/journal:addentries', '', '', '', '', $groups);
 
 if (!$users) {
-	echo $OUTPUT->heading(get_string("nousersyet"));
+    echo $OUTPUT->heading(get_string("nousersyet"));
 
 } else {
 
@@ -126,11 +151,7 @@ if (!$users) {
         print_error('noentriesmanagers', 'journal');
     }
 
-    $allowedtograde = (groups_get_activity_groupmode($cm) != VISIBLEGROUPS OR groups_is_member($currentgroup));
-
-    if ($allowedtograde) {
-        echo '<form action="report.php" method="post">';
-    }
+    echo '<form action="report.php" method="post">';
 
     if ($usersdone = journal_get_users_done($journal, $currentgroup)) {
         foreach ($usersdone as $user) {
@@ -143,13 +164,12 @@ if (!$users) {
         journal_print_user_entry($course, $user, NULL, $teachers, $grades);
     }
 
-    if ($allowedtograde) {
-        echo "<p class=\"feedbacksave\">";
-        echo "<input type=\"hidden\" name=\"id\" value=\"$cm->id\" />";
-        echo "<input type=\"submit\" value=\"".get_string("saveallfeedback", "journal")."\" />";
-        echo "</p>";
-        echo "</form>";
-    }
+    echo "<p class=\"feedbacksave\">";
+    echo "<input type=\"hidden\" name=\"id\" value=\"$cm->id\" />";
+    echo "<input type=\"hidden\" name=\"sesskey\" value=\"" . sesskey() . "\" />";
+    echo "<input type=\"submit\" value=\"".get_string("saveallfeedback", "journal")."\" />";
+    echo "</p>";
+    echo "</form>";
 }
 
 echo $OUTPUT->footer();

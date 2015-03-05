@@ -24,71 +24,35 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$numberofslides = theme_essential_showslider('numberofslides'); // In lib.php.
+$numberofslides = theme_essential_showslider();
 
 if ($numberofslides) {
-    $slideinterval = theme_essential_get_setting('slideinterval');
-?>
+    $slideinterval  = theme_essential_get_setting('slideinterval');
+    $captionscenter = (theme_essential_get_setting('slidecaptioncentred'))? ' centred' : '';
+    $captionoptions = theme_essential_get_setting('slidecaptionoptions');
+    $captionsbelowclass  = ($captionoptions == 2) ? ' below' : '';
+    ?>
     <div class="row-fluid">
         <div class="span12">
             <div id="essentialCarousel" class="carousel slide" data-interval="<?php echo $slideinterval;?>">
+                <?php echo theme_essential_edit_button('theme_essential_slideshow');?>
                 <ol class="carousel-indicators">
                     <?php
-                    $first = true;
-                    for ($i = 1; $i <= $numberofslides; $i++) { ?>
-                        <li data-target="#essentialCarousel" data-slide-to="<?php echo $i - 1; ?>" <?php if ($first) { echo 'class="active"'; $first = false; } ?>></li>
-                    <?php } ?>
+                    for ($indicatorslideindex = 0; $indicatorslideindex < $numberofslides; $indicatorslideindex++) {
+                        echo '<li data-target="#essentialCarousel" data-slide-to="'.$indicatorslideindex.'"';
+                        if ($indicatorslideindex == 0) {
+                            echo 'class="active"';
+                        }
+                        echo '></li>';
+                    }
+                    ?>
                 </ol>
-                <div class="carousel-inner">
-                    <?php
-                    $first = true;
-                    for ($i = 1; $i <= $numberofslides; $i++) {
-                        $urlsetting = 'slide'.$i.'url';
-                        $urltarget = 'slide'.$i.'target';
-                        if (theme_essential_get_setting($urlsetting)) {
-                            echo '<a href="'.theme_essential_get_setting($urlsetting).'" target="'.theme_essential_get_setting($urltarget).'"';
-                        } else {
-                            echo '<div';
-                        }
-                        echo ' class="';
-                        if ($first) {
-                            echo 'active ';
-                            $first = false;
-                        }
-                        echo 'item">';
-                        $imagesetting = 'slide'.$i.'image';
-                        if (theme_essential_get_setting($imagesetting)) {
-                            $image = $PAGE->theme->setting_file_url($imagesetting, $imagesetting);
-                        } else {
-                            $image = $OUTPUT->pix_url('default_slide', 'theme');
-                        }
-                        $slidetitle = 'slide'.$i;
-                        if (theme_essential_get_setting($slidetitle)) {
-                            $imgalt = theme_essential_get_setting($slidetitle);
-                        } else {
-                            $imgalt = get_string('noslidetitle', 'theme_essential', array('slide' => $i));
-                        }
-                        ?>
-                        <img src="<?php echo $image; ?>" alt="<?php echo $imgalt; ?>" class="carousel-image" />
-
-                        <?php
-                        $slidecaption = 'slide'.$i.'caption';
-                        if ((theme_essential_get_setting($slidetitle)) || (theme_essential_get_setting($slidecaption))) { ?>
-                            <div class="carousel-caption">
-                                <div class="carousel-caption-inner">
-                                <?php
-                                if (theme_essential_get_setting($slidetitle)) { echo '<h4>'.theme_essential_get_setting($slidetitle).'</h4>'; }
-                                if (theme_essential_get_setting($slidecaption)) { echo '<p>'.theme_essential_get_setting($slidecaption).'</p>'; }
-                                ?> 
-                                </div>
-                            </div> 
-                            <?php 
-                            }
-                            echo (theme_essential_get_setting($urlsetting)? '</a>' : '</div>');
+                <div class="carousel-inner<?php echo $captionscenter.$captionsbelowclass;?>">
+                    <?php for ($slideindex = 1; $slideindex <= $numberofslides; $slideindex++) {
+                        echo theme_essential_render_slide($slideindex, $captionoptions);
                     } ?>
                 </div>
-                <a class="left carousel-control" href="#essentialCarousel" data-slide="prev"><i class="fa fa-chevron-circle-left"></i></a>
-                <a class="right carousel-control" href="#essentialCarousel" data-slide="next"><i class="fa fa-chevron-circle-right"></i></a>
+                <?php echo theme_essential_render_slide_controls($left); ?>
             </div>
         </div>
     </div>
