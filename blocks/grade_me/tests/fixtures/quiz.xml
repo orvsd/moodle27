@@ -7,12 +7,16 @@
         <column>itemmodule</column>
         <column>iteminstance</column>
         <column>courseid</column>
+        <column>coursename</column>
+        <column>coursemoduleid</column>
         <row>
             <value>1</value>
             <value>quizitem</value>
             <value>mod</value>
             <value>quiz</value>
-            <value>1</value>
+            <value>0</value>
+            <value>0</value>
+            <value>0</value>
             <value>0</value>
         </row>
         <row>
@@ -20,24 +24,30 @@
             <value>quizitem2</value>
             <value>mod</value>
             <value>quiz</value>
-            <value>2</value>
+            <value>1</value>
             <value>0</value>
+            <value>0</value>
+            <value>1</value>
         </row>
         <row>
             <value>3</value>
             <value>quizitem3</value>
             <value>mod</value>
             <value>quiz</value>
-            <value>3</value>
+            <value>2</value>
             <value>0</value>
+            <value>0</value>
+            <value>2</value>
         </row>
         <row>
             <value>4</value>
             <value>quizitem4</value>
             <value>mod</value>
             <value>quiz</value>
-            <value>4</value>
+            <value>3</value>
             <value>0</value>
+            <value>0</value>
+            <value>3</value>
         </row>
     </table>
     <table name="quiz">
@@ -75,7 +85,7 @@
         <column>uniqueid</column>
         <row>
             <value>1</value>
-            <value>1</value>
+            <value>0</value>
             <value>0</value>
             <value>inprogress</value>
             <value>0</value>
@@ -84,7 +94,7 @@
         </row>
         <row>
             <value>2</value>
-            <value>2</value>
+            <value>1</value>
             <value>0</value>
             <value>finished</value>
             <value>1407519469</value>
@@ -93,7 +103,7 @@
         </row>
         <row>
             <value>3</value>
-            <value>3</value>
+            <value>2</value>
             <value>0</value>
             <value>finished</value>
             <value>1407619469</value>
@@ -102,12 +112,67 @@
         </row>
         <row>
             <value>4</value>
-            <value>4</value>
+            <value>3</value>
             <value>0</value>
             <value>finished</value>
             <value>1407619469</value>
             <value>1,0</value>
             <value>4</value>
+        </row>
+    </table>
+    <table name="question_attempts">
+        <column>id</column>
+        <column>questionusageid</column>
+        <column>slot</column>
+        <column>behaviour</column>
+        <column>questionid</column>
+        <column>maxmark</column>
+        <column>minfraction</column>
+        <column>maxfraction</column>
+        <column>timemodified</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+            <value>1</value>
+            <value>manualgraded</value>
+            <value>1</value>
+            <value>1</value>
+            <value>0.0000000</value>
+            <value>1.0000000</value>
+            <value>1424290462</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>2</value>
+            <value>1</value>
+            <value>manualgraded</value>
+            <value>2</value>
+            <value>1</value>
+            <value>0.0000000</value>
+            <value>1.0000000</value>
+            <value>1424290463</value>
+        </row>
+        <row>
+            <value>3</value>
+            <value>3</value>
+            <value>1</value>
+            <value>manualgraded</value>
+            <value>3</value>
+            <value>1</value>
+            <value>0.0000000</value>
+            <value>1.0000000</value>
+            <value>1424290464</value>
+        </row>
+        <row>
+            <value>4</value>
+            <value>4</value>
+            <value>1</value>
+            <value>manualgraded</value>
+            <value>4</value>
+            <value>1</value>
+            <value>0.0000000</value>
+            <value>1.0000000</value>
+            <value>1424290465</value>
         </row>
     </table>
     <table name="question_attempt_steps">
