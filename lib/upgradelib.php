@@ -2162,3 +2162,75 @@ function upgrade_fix_missing_root_folders() {
     $rs->close();
     $transaction->allow_commit();
 }
+
+/**
+ * Detect draft file areas with missing root directory records and add them.
+ */
+function upgrade_fix_missing_root_folders_draft() {
+    global $DB;
+
+    $transaction = $DB->start_delegated_transaction();
+
+    $sql = "SELECT contextid, itemid, MAX(timecreated) AS timecreated, MAX(timemodified) AS timemodified
+              FROM {files}
+             WHERE (component = 'user' AND filearea = 'draft')
+          GROUP BY contextid, itemid
+            HAVING MAX(CASE WHEN filename = '.' AND filepath = '/' THEN 1 ELSE 0 END) = 0";
+
+    $rs = $DB->get_recordset_sql($sql);
+    $defaults = array('component' => 'user',
+        'filearea' => 'draft',
+        'filepath' => '/',
+        'filename' => '.',
+        'userid' => 0, // Don't rely on any particular user for these system records.
+        'filesize' => 0,
+        'contenthash' => sha1(''));
+    foreach ($rs as $r) {
+        $r->pathnamehash = sha1("/$r->contextid/user/draft/$r->itemid/.");
+        $DB->insert_record('files', (array)$r + $defaults);
+    }
+    $rs->close();
+    $transaction->allow_commit();
+}
+
+/**
+ * This function verifies that the database is not using an unsupported storage engine.
+ *
+ * @param environment_results $result object to update, if relevant
+ * @return environment_results|null updated results object, or null if the storage engine is supported
+ */
+function check_database_storage_engine(environment_results $result) {
+    global $DB;
+
+    // Check if MySQL is the DB family (this will also be the same for MariaDB).
+    if ($DB->get_dbfamily() == 'mysql') {
+        // Get the database engine we will either be using to install the tables, or what we are currently using.
+        $engine = $DB->get_dbengine();
+        // Check if MyISAM is the storage engine that will be used, if so, do not proceed and display an error.
+        if ($engine == 'MyISAM') {
+            $result->setInfo('unsupported_db_storage_engine');
+            $result->setStatus(false);
+            return $result;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Method used to check the usage of slasharguments config and display a warning message.
+ *
+ * @param environment_results $result object to update, if relevant.
+ * @return environment_results|null updated results or null if slasharguments is disabled.
+ */
+function check_slasharguments(environment_results $result){
+    global $CFG;
+
+    if (empty($CFG->slasharguments)) {
+        $result->setInfo('slasharguments');
+        $result->setStatus(false);
+        return $result;
+    }
+
+    return null;
+}

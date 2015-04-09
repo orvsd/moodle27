@@ -563,8 +563,8 @@ class gradingform_guide_controller extends gradingform_controller {
             return $this->get_instance($instance);
         }
         if ($itemid && $raterid) {
-            if ($rs = $DB->get_records('grading_instances', array('raterid' => $raterid, 'itemid' => $itemid),
-                'timemodified DESC', '*', 0, 1)) {
+            $params = array('definitionid' => $this->definition->id, 'raterid' => $raterid, 'itemid' => $itemid);
+            if ($rs = $DB->get_records('grading_instances', $params, 'timemodified DESC', '*', 0, 1)) {
                 $record = reset($rs);
                 $currentinstance = $this->get_current_instance($raterid, $itemid);
                 if ($record->status == gradingform_guide_instance::INSTANCE_STATUS_INCOMPLETE &&
@@ -645,7 +645,8 @@ class gradingform_guide_controller extends gradingform_controller {
         $returnvalue['maxscore'] = $maxscore;
         $returnvalue['minscore'] = 0;
         if (!empty($this->moduleinstance->grade)) {
-            $returnvalue['modulegrade'] = $this->moduleinstance->grade;
+            $graderange = make_grades_menu($this->moduleinstance->grade);
+            $returnvalue['modulegrade'] = count($graderange) - 1;
         }
         return $returnvalue;
     }

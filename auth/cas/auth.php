@@ -113,6 +113,12 @@ class auth_plugin_cas extends auth_plugin_ldap {
 
         // If the multi-authentication setting is used, check for the param before connecting to CAS.
         if ($this->config->multiauth) {
+
+            // If there is an authentication error, stay on the default authentication page.
+            if (!empty($SESSION->loginerrormsg)) {
+                return;
+            }
+
             $authCAS = optional_param('authCAS', '', PARAM_RAW);
             if ($authCAS == 'NOCAS') {
                 return;
@@ -169,7 +175,7 @@ class auth_plugin_cas extends auth_plugin_ldap {
         global $CFG, $USER, $DB;
 
         if (!empty($this->config->logoutcas) && $USER->auth == $this->authtype) {
-            $backurl = $CFG->wwwroot;
+            $backurl = !empty($this->config->logout_return_url) ? $this->config->logout_return_url : $CFG->wwwroot;
             $this->connectCAS();
             // Note: Hack to stable versions to trigger the event before it redirect to CAS logout.
             $sid = session_id();
