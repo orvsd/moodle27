@@ -57,7 +57,11 @@ $attempt = scorm_get_last_attempt($scorm->id, $USER->id);
 // Check mode is correct and set/validate mode/attempt/newattempt (uses pass by reference).
 scorm_check_mode($scorm, $newattempt, $attempt, $USER->id, $mode);
 
-$url = new moodle_url('/mod/scorm/player.php', array('scoid'=>$scoid, 'cm'=>$cm->id));
+if (!empty($scoid)) {
+    $scoid = scorm_check_launchable_sco($scorm, $scoid);
+}
+
+$url = new moodle_url('/mod/scorm/player.php', array('scoid' => $scoid, 'cm' => $cm->id));
 if ($mode !== 'normal') {
     $url->param('mode', $mode);
 }
@@ -97,7 +101,7 @@ if ($displaymode == 'popup') {
     $PAGE->set_title($pagetitle);
     $PAGE->set_heading($course->fullname);
 }
-if (!$cm->visible and !has_capability('moodle/course:viewhiddenactivities', $coursecontext)) {
+if (!$cm->visible and !has_capability('moodle/course:viewhiddenactivities', context_module::instance($cm->id))) {
     echo $OUTPUT->header();
     notice(get_string("activityiscurrentlyhidden"));
     echo $OUTPUT->footer();

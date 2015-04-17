@@ -97,6 +97,11 @@ if (!$iid) {
         $csvimport = new csv_import_reader($iid, 'grade');
 
         $csvimport->load_csv_content($text, $formdata->encoding, $separator);
+        if ($error = $csvimport->get_error()) {
+            echo $OUTPUT->notification($error);
+            echo $OUTPUT->footer();
+            die();
+        }
 
         // --- get header (field names) ---
         $header = $csvimport->get_columns();
@@ -282,11 +287,11 @@ if ($formdata = $mform2->get_data()) {
                     $newgrade = new stdClass();
                     $newgrade->newgradeitem = $newgradeitems[$key];
 
-                    // if the user has a grade for this grade item
-                    if (trim($value) != '-') {
-                        // instead of omitting the grade we could insert one with finalgrade set to 0
-                        // we do not have access to grade item min grade
-                        $newgrade->finalgrade   = $value;
+                    // If the user has a grade for this grade item.
+                    $trimmed = trim($value);
+                    if ($trimmed !== '' and $trimmed != '-') {
+                        // Only include a grade if it is not blank or a dash.
+                        $newgrade->finalgrade = $value;
                         $newgrades[] = $newgrade;
                     }
                 break;
@@ -299,7 +304,7 @@ if ($formdata = $mform2->get_data()) {
                             // had to pick mapping
                             $status = false;
                             import_cleanup($importcode);
-                            echo $OUTPUT->notification(get_string('importfailed', 'grades'));
+                            // Relying on the default import failed message below.
                             break 3;
                         }
 
@@ -320,7 +325,7 @@ if ($formdata = $mform2->get_data()) {
                             // had to pick mapping
                             $status = false;
                             import_cleanup($importcode);
-                            echo $OUTPUT->notification(get_string('importfailed', 'grades'));
+                            // Relying on the default import failed message below.
                             break 3;
                         }
 
@@ -445,6 +450,8 @@ if ($formdata = $mform2->get_data()) {
     /// at this stage if things are all ok, we commit the changes from temp table
     if ($status) {
         grade_import_commit($course->id, $importcode);
+    } else {
+        echo $OUTPUT->notification(get_string('importfailed', 'grades'));
     }
 } else {
     // If data hasn't been submitted then display the data mapping form.

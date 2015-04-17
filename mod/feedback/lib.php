@@ -395,9 +395,12 @@ function feedback_get_recent_mod_activity(&$activities, &$index,
         $sql .= " JOIN {groups_members} gm ON  gm.userid=u.id ";
     }
 
-    $sql .= " WHERE fc.timemodified > ? AND fk.id = ? ";
+    $sql .= " WHERE fc.timemodified > ?
+                AND fk.id = ?
+                AND fc.anonymous_response = ?";
     $sqlargs[] = $timemodified;
     $sqlargs[] = $cm->instance;
+    $sqlargs[] = FEEDBACK_ANONYMOUS_NO;
 
     if ($userid) {
         $sql .= " AND u.id = ? ";
@@ -893,6 +896,9 @@ function feedback_get_incomplete_users($cm,
                                             true)) {
         return false;
     }
+    // Filter users that are not in the correct group/grouping.
+    $allusers = groups_filter_users_by_course_module_visible($cm, $allusers);
+
     $allusers = array_keys($allusers);
 
     //now get all completeds
